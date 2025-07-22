@@ -1,1 +1,502 @@
 # jiu220.github.io
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实验</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            line-height: 1.6;
+        }
+        .screen {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: none;
+        }
+        .active {
+            display: block;
+        }
+        .chat-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 20px;
+            background-color: #fafafa;
+        }
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+            padding: 12px 18px;
+            border-radius: 18px;
+        }
+        .ai-message {
+            background-color: #f0f7ff;
+            border-radius: 18px 18px 18px 4px;
+            margin-right: auto;
+        }
+        .user-message {
+            background-color: #e1f5fe;
+            border-radius: 18px 18px 4px 18px;
+            margin-left: auto;
+        }
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .ai-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: #e3f2fd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #1976d2;
+        }
+        .input-area {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+        #userInput {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            font-family: inherit;
+            resize: none;
+            min-height: 80px;
+        }
+        #sendButton {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            padding: 12px 24px;
+            cursor: pointer;
+            font-size: 16px;
+            height: fit-content;
+        }
+        #sendButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        .timer {
+            font-size: 16px;
+            color: #e53935;
+            margin: 10px 0;
+            text-align: right;
+            font-weight: bold;
+        }
+        .task-material {
+            background-color: #fff8e1;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 4px solid #ffc107;
+        }
+        .instructions {
+            margin-bottom: 30px;
+        }
+        .start-button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto 0;
+        }
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- 实验流程屏幕 -->
+    <div id="screen1" class="screen active">
+        <h2>欢迎您参加本实验！</h2>
+        <p>请先输入您的被试编号：</p>
+        <input type="text" id="participantID" placeholder="例如：P001">
+        <button onclick="validateID()">开始实验</button>
+    </div>
+
+    <div id="screen2" class="screen">
+        <h2>实验知情同意书</h2>
+        <div style="max-height: 400px; overflow-y: auto; margin-bottom: 20px; padding: 15px; border: 1px solid #eee; border-radius: 8px;">
+            <p>本研究旨在探索人工智能交互对创造力的影响。您将完成：</p>
+            <ol>
+                <li>基线创造力测试</li>
+                <li>3项AI指导的创造力任务</li>
+                <li>背景问卷</li>
+            </ol>
+            <p><strong>隐私说明：</strong>所有数据将匿名处理，仅用于学术研究。</p>
+        </div>
+        <label>
+            <input type="checkbox" id="consentCheck"> 我已阅读并同意参与本实验
+        </label>
+        <button onclick="startBaselineTest()" id="consentButton" disabled>继续</button>
+    </div>
+
+    <div id="screen3" class="screen">
+        <h2>第一部分</h2>
+        <p>请完成以下问卷：</p>
+        <iframe id="baselineQuestionnaire" src="https://www.wjx.cn/vm/QFpv0wi.aspx#" style="width:100%; height:500px; border:none;"></iframe>
+        <button onclick="showInstructions()" style="margin-top:20px;">已完成问卷，继续实验</button>
+    </div>
+
+    <div id="screen4" class="screen">
+        <h2>实验说明</h2>
+        <div class="instructions">
+            <p>这是一个可以对创造力进行评分的人工智能系统。</p>
+            <p>您将完成3个创造力任务：</p>
+            <ol>
+                <li>首先，阅读AI系统给出的材料和指导语</li>
+                <li>然后，在对话框中输入您的创意作答</li>
+                <li>最后，点击"发送"按钮提交（每个任务只能提交一次）</li>
+            </ol>
+            <p><strong>注意：</strong>每个任务限时5分钟，超时系统将自动提交。</p>
+        </div>
+        <button class="start-button" onclick="startCreativeTasks()">开始实验</button>
+    </div>
+
+    <div id="screen5" class="screen">
+        <div class="chat-container" id="chatContainer"></div>
+        <div class="timer">剩余时间：<span id="countdown">05:00</span></div>
+        <div class="input-area">
+            <textarea id="userInput" placeholder="请输入您的创意回答..."></textarea>
+            <button id="sendButton" onclick="submitResponse()">发送</button>
+        </div>
+    </div>
+
+    <div id="screen6" class="screen">
+        <h2>最后一项</h2>
+        <p>请完成以下问卷：</p>
+        <iframe id="postQuestionnaire" src="https://www.wjx.cn/vm/QFpv0wi.aspx#" style="width:100%; height:500px; border:none;"></iframe>
+        <button onclick="completeExperiment()" style="margin-top:20px;">提交问卷，完成实验</button>
+    </div>
+
+    <div id="screen7" class="screen">
+        <h2>实验已完成！</h2>
+        <p>感谢您的参与！您的数据已安全保存。</p>
+        <p>被试编号：<strong id="displayID"></strong></p>
+        <p>如有任何问题，请联系：1028837928@qq.com</p>
+    </div>
+
+    <!-- Firebase 集成 -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <script>
+        // 实验配置
+        const config = {
+            // 三个创造力任务（随机顺序呈现）
+            creativeTasks: [
+                "改造旧网球拍和花园软管，提交至少一个创意方案",
+                "设计一种解决城市停车问题的新方案",
+                "重新设计超市购物车的功能和使用体验"
+            ],
+            
+            // 分组指导语配置
+            groupInstructions: {
+                // 空白组
+                blank: "您将完成一个由人工智能系统评分的创意任务。该系统使用了高度复杂的算法，因此其评分过程无法被直观呈现或解释。\n请根据您自己的理解完成任务。",
+                
+                // 全局解释组
+                global: "您将完成一个由人工智能系统评分的创意任务。该系统将基于原创性和实用性两个维度，综合评价每个创意的创造性，并给出1到7分的评分。\n\n原创性：该创意在系统中是否前所未见、是否跳脱材料的常规用途。\n实用性：该创意是否可实际实施，是否具有明确功能，逻辑上是否可行。",
+                
+                // 局部解释组（两种指导语随机分配）
+                localPositive: "您将完成一个由人工智能系统评分的创意任务。在该系统中，创意获得高分的原因是：\n• 用途迁移明显（如从运动工具到座椅装置）→ 高原创性\n• 实用性较好（如网球拍框架适配承重结构）→ 高实用性\n\n若系统模型匹配结果发现，创意与训练库中现有创意语义相似度低，并具现实可操作性，则该创意获得高分。",
+                
+                localNegative: "您将完成一个由人工智能系统评分的创意任务。在该系统中，创意获得低分的原因是：\n• 用途未脱离材料原始功能（如盛装、收纳）→ 低原创性\n• 实用性存在问题（如水管结构柔软难以稳定成型）→ 低实用性\n\n若系统模型匹配结果发现，创意与训练库中现有创意语义相似度高，并不具现实可操作性，则该创意获得低分。"
+            },
+            
+            taskDuration: 300, // 任务限时5分钟（单位：秒）
+            questionnaireLinks: {
+                baseline: "https://www.wjx.cn/vm/QFpv0wi.aspx#",
+                postTest: "https://www.wjx.cn/vm/QFpv0wi.aspx#"
+            }
+        };
+
+        // 实验数据记录
+        let experimentData = {
+            participantID: "",
+            group: "",          // blank / global / local
+            startTime: "",
+            creativeResponses: [],
+            endTime: "",
+            taskOrder: []      // 记录任务随机顺序
+        };
+
+        // Firebase配置（替换为您自己的配置）
+        const firebaseConfig = {
+            apiKey: "AIzaSyABCD1234",
+            authDomain: "your-project.firebaseapp.com",
+            projectId: "your-project-id",
+            storageBucket: "your-project.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcd1234"
+        };
+
+        // 初始化变量
+        let currentTaskIndex = 0;
+        let timerInterval;
+        let hasSubmitted = false;
+        
+        // 初始化Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // ========== 实验流程控制 ==========
+        function validateID() {
+            const id = document.getElementById('participantID').value.trim();
+            if (id.length < 2) {
+                alert("请输入有效的被试编号");
+                return;
+            }
+            experimentData.participantID = id;
+            experimentData.startTime = new Date().toISOString();
+            
+            // 随机分配实验组别 (0:空白, 1:全局, 2:局部)
+            const groupNum = Math.floor(Math.random() * 3);
+            experimentData.group = ["blank", "global", "local"][groupNum];
+            
+            navigateTo(1); // 转到知情同意书
+        }
+
+        function startBaselineTest() {
+            navigateTo(2);
+        }
+
+        function showInstructions() {
+            navigateTo(3);
+        }
+
+        function startCreativeTasks() {
+            // 随机排序创造力任务
+            experimentData.taskOrder = shuffleArray([...Array(config.creativeTasks.length).keys()]);
+            navigateTo(4);
+            loadCreativeTask(0);
+        }
+
+        function loadCreativeTask(index) {
+            if (index >= config.creativeTasks.length) {
+                navigateTo(5); // 转到后测问卷
+                return;
+            }
+
+            currentTaskIndex = index;
+            const taskId = experimentData.taskOrder[index];
+            hasSubmitted = false;
+            document.getElementById('userInput').value = '';
+            document.getElementById('sendButton').disabled = false;
+            
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '';
+            
+            // 添加任务材料
+            addAIMessage(`<div class="task-material"><strong>创意材料：</strong>${config.creativeTasks[taskId]}</div>`);
+            
+            // 添加分组指导语
+            let instruction = "";
+            if (experimentData.group === "blank") {
+                instruction = config.groupInstructions.blank;
+            } 
+            else if (experimentData.group === "global") {
+                instruction = config.groupInstructions.global;
+            } 
+            else if (experimentData.group === "local") {
+                // 局部解释组交替使用正负向解释
+                instruction = index % 2 === 0 ? config.groupInstructions.localPositive : config.groupInstructions.localNegative;
+            }
+            
+            addAIMessage(instruction);
+            startTimer(config.taskDuration);
+        }
+
+        function submitResponse() {
+            const response = document.getElementById('userInput').value.trim();
+            if (hasSubmitted) {
+                alert("每个任务只能提交一次回答");
+                return;
+            }
+
+            hasSubmitted = true;
+            document.getElementById('sendButton').disabled = true;
+            
+            if (response !== '') {
+                addUserMessage(response);
+            }
+            
+            saveResponse(response);
+            
+            // 2秒后自动加载下一个任务
+            setTimeout(() => {
+                loadCreativeTask(currentTaskIndex + 1);
+            }, 2000);
+        }
+
+        function saveResponse(response) {
+            const taskId = experimentData.taskOrder[currentTaskIndex];
+            
+            experimentData.creativeResponses.push({
+                taskId: taskId,
+                taskIndex: currentTaskIndex,
+                prompt: config.creativeTasks[taskId],
+                response: response,
+                timeSpent: config.taskDuration - getRemainingSeconds(),
+                timestamp: new Date().toISOString(),
+                group: experimentData.group,
+                instructionType: getInstructionType()
+            });
+
+            clearInterval(timerInterval);
+            saveToFirebase();
+        }
+
+        function completeExperiment() {
+            experimentData.endTime = new Date().toISOString();
+            saveToFirebase();
+            navigateTo(6);
+            document.getElementById('displayID').textContent = experimentData.participantID;
+        }
+
+        // ========== 辅助函数 ==========
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function addAIMessage(text) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message ai-message';
+            
+            messageDiv.innerHTML = `
+                <div class="ai-header">
+                    <div class="ai-avatar">AI</div>
+                    <strong>创造力评估系统</strong>
+                </div>
+                <div>${text.replace(/\n/g, '<br>')}</div>
+            `;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addUserMessage(text) {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message user-message';
+            messageDiv.textContent = text;
+            
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function startTimer(seconds) {
+            clearInterval(timerInterval);
+            
+            let remaining = seconds;
+            updateTimerDisplay(remaining);
+            
+            timerInterval = setInterval(() => {
+                remaining--;
+                updateTimerDisplay(remaining);
+                
+                if (remaining <= 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById('sendButton').disabled = true;
+                    if (!hasSubmitted) {
+                        // 时间到自动提交已有内容
+                        const response = document.getElementById('userInput').value.trim();
+                        if (response !== '') {
+                            addUserMessage(response);
+                        }
+                        saveResponse(response);
+                        
+                        // 自动加载下一个任务
+                        setTimeout(() => {
+                            loadCreativeTask(currentTaskIndex + 1);
+                        }, 2000);
+                    }
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = seconds % 60;
+            document.getElementById('countdown').textContent = 
+                `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        function getRemainingSeconds() {
+            const timeText = document.getElementById('countdown').textContent;
+            const [mins, secs] = timeText.split(':').map(Number);
+            return mins * 60 + secs;
+        }
+
+        function getInstructionType() {
+            if (experimentData.group === "blank") return "blank";
+            if (experimentData.group === "global") return "global";
+            return currentTaskIndex % 2 === 0 ? "local_positive" : "local_negative";
+        }
+
+        function navigateTo(screenIndex) {
+            document.querySelectorAll('.screen').forEach((screen, index) => {
+                screen.classList.toggle('active', index === screenIndex);
+            });
+        }
+
+        async function saveToFirebase() {
+            try {
+                const docRef = db.collection('creativity_study').doc(experimentData.participantID);
+                await docRef.set({
+                    ...experimentData,
+                    submitTime: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                console.log("数据已保存到Firebase");
+            } catch (error) {
+                console.error("保存失败:", error);
+                // 失败时本地备份
+                downloadBackup();
+            }
+        }
+
+        function downloadBackup() {
+            const dataStr = JSON.stringify(experimentData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `creativity_backup_${experimentData.participantID}.json`;
+            a.click();
+        }
+
+        // 初始化事件监听
+        document.getElementById('consentCheck').addEventListener('change', function() {
+            document.getElementById('consentButton').disabled = !this.checked;
+        });
+    </script>
+</body>
+</html>
